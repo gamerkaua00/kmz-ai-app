@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMZ AI - Assistente de Engenharia</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background-color: #1e1e1e;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #00ff88;
+        }
+        #chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            padding: 12px 18px;
+            border-radius: 8px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+        .user-msg {
+            background-color: #00ff88;
+            color: #000;
+            align-self: flex-end;
+            font-weight: 500;
+        }
+        .ai-msg {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            align-self: flex-start;
+        }
+        pre {
+            background-color: #000 !important;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            position: relative;
+            margin-top: 10px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #333;
+            color: #00ff88;
+            border: 1px solid #00ff88;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .copy-btn:hover { background-color: #00ff88; color: #000; }
+        .input-area {
+            display: flex;
+            padding: 15px;
+            background-color: #1e1e1e;
+            border-top: 1px solid #333;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+            color: #fff;
+            font-size: 16px;
+        }
+        input[type="text"]:focus { outline: none; border: 1px solid #00ff88; }
+        button#send-btn {
+            background-color: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0 20px;
+            margin-left: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        button#send-btn:hover { background-color: #00cc6a; }
+        footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #888;
+            background-color: #121212;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>KMZ AI</h2>
+    </header>
+
+    <div id="chat-container">
+        <div class="message ai-msg">Sistemas online. O que vamos calcular ou programar hoje?</div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Ex: Crie um banco de dados em SQL... ou Calcule o indutor...">
+        <button id="send-btn">Enviar</button>
+    </div>
+
+    <footer>
+        Empresa: KMZ | Suporte: kmzsuportt1@gmail.com
+    </footer>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // A SUA PONTE PARA O RENDER
+        const API_URL = 'https://kmz-ai-backend.onrender.com/ask';
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'user-msg');
+            userInput.value = '';
+            
+            // Trava o input enquanto carrega
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+
+            const loadingId = addMessage('Processando...', 'ai-msg');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text }) // Zero memória: envia só o texto atual
+                });
+
+                const data = await response.json();
+                
+                document.getElementById(loadingId).remove();
+                addMessage(data.response, 'ai-msg', true);
+
+            } catch (error) {
+                document.getElementById(loadingId).remove();
+                addMessage('Erro de conexão. O Render pode estar "acordando" (leva uns 40s na primeira vez do dia), tente enviar de novo.', 'ai-msg');
+            } finally {
+                // Destrava o input
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        function addMessage(text, className, isMarkdown = false) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${className}`;
+            const msgId = 'msg-' + Date.now();
+            msgDiv.id = msgId;
+
+            if (isMarkdown) {
+                msgDiv.innerHTML = marked.parse(text);
+                
+                // Sistema de Copia e Cola automático pros códigos
+                const preBlocks = msgDiv.querySelectorAll('pre');
+                preBlocks.forEach(pre => {
+                    const btn = document.createElement('button');
+                    btn.className = 'copy-btn';
+                    btn.innerText = 'Copiar Código';
+                    btn.onclick = () => {
+                        const code = pre.querySelector('code') ? pre.querySelector('code').innerText : pre.innerText;
+                        navigator.clipboard.writeText(code);
+                        btn.innerText = 'Copiado!';
+                        setTimeout(() => btn.innerText = 'Copiar Código', 2000);
+                    };
+                    pre.appendChild(btn);
+                });
+            } else {
+                msgDiv.textContent = text;
+            }
+
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return msgId;
+        }
+    </script>
+</body>
+</html>
