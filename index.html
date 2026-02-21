@@ -18,7 +18,7 @@
         #chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
         .message { padding: 15px 20px; border-radius: 12px; max-width: 85%; word-wrap: break-word; line-height: 1.6; font-size: 0.95rem; position: relative; }
         .user-msg { background-color: var(--primary-color); color: #000; align-self: flex-end; font-weight: 600; }
-        .ai-msg { background-color: var(--bg-secondary); border: 1px solid #333; align-self: flex-start; padding-bottom: 40px; }
+        .ai-msg { background-color: var(--bg-secondary); border: 1px solid #333; align-self: flex-start; padding-bottom: 45px; width: 85%; }
         
         pre { background-color: #000 !important; padding: 15px; border-radius: 8px; overflow-x: auto; position: relative; margin-top: 10px; border: 1px solid #333; }
         code { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
@@ -26,19 +26,27 @@
         .action-btn { position: absolute; top: 8px; background-color: #222; color: var(--text-dim); border: 1px solid #444; padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 0.75rem; font-weight: 600; transition: 0.2s; }
         .action-btn:hover { background-color: var(--primary-color); color: #000; border-color: var(--primary-color); }
         .copy-btn { right: 8px; }
-        .preview-btn { right: 100px; color: #00eb87; border-color: #00eb87; }
-        
-        /* Botão de PDF no canto inferior da mensagem da IA */
-        .pdf-btn { position: absolute; bottom: 8px; right: 15px; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
-        .pdf-btn:hover { color: var(--primary-color); }
 
-        /* Área do Preview Imersivo */
-        .preview-frame { width: 100%; height: 300px; border: 1px solid var(--primary-color); border-radius: 8px; margin-top: 10px; background-color: #fff; display: none; }
+        .pdf-btn { position: absolute; bottom: 10px; right: 15px; background-color: #1e1e1e; border: 1px solid #444; color: var(--text-dim); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; transition: 0.2s; }
+        .pdf-btn:hover { color: #000; background-color: var(--primary-color); border-color: var(--primary-color); }
 
-        .input-area { display: flex; padding: 15px; background-color: var(--bg-secondary); border-top: 1px solid #333; }
+        /* Estilos do Preview Combinado */
+        .master-preview-container { margin-top: 20px; border-top: 1px dashed #444; padding-top: 15px; }
+        .master-preview-btn { position: static; background-color: #1a3a2a; border-color: var(--primary-color); color: var(--primary-color); margin-bottom: 10px; display: block; width: 100%; text-align: center; }
+        .master-preview-btn:hover { background-color: var(--primary-color); color: #000; }
+        .preview-frame { width: 100%; height: 350px; border: 2px solid var(--primary-color); border-radius: 8px; background-color: #fff; display: none; }
+
+        /* Barra de Snippets (Atalhos) */
+        .snippets-bar { display: flex; gap: 10px; padding: 10px 15px; background-color: var(--bg-secondary); overflow-x: auto; white-space: nowrap; border-top: 1px solid #333; }
+        .snippet { background-color: #222; color: var(--text-dim); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; border: 1px solid #444; transition: 0.2s; }
+        .snippet:hover { background-color: var(--primary-color); color: #000; }
+
+        .input-area { display: flex; padding: 15px; background-color: var(--bg-secondary); }
         input[type="text"] { flex: 1; padding: 15px; border: 1px solid #333; border-radius: 8px; background-color: var(--bg-dark); color: var(--text-light); font-size: 16px; font-family: 'Inter', sans-serif; }
         input[type="text"]:focus { outline: none; border-color: var(--primary-color); }
-        button#send-btn { background-color: var(--primary-color); color: #000; border: none; padding: 0 25px; margin-left: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; }
+        button#send-btn { background-color: var(--primary-color); color: #000; border: none; padding: 0 25px; margin-left: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        button#send-btn:hover { transform: scale(1.05); }
+
         footer { text-align: center; padding: 12px; font-size: 0.75rem; color: var(--text-dim); background-color: var(--bg-dark); font-family: 'JetBrains Mono', monospace; }
         img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
     </style>
@@ -46,18 +54,25 @@
 <body>
     <header>
         <div class="header-logo">KMZ AI</div>
-        <span class="header-badge">v3.0 Enterprise (Canvas & PDF)</span>
+        <span class="header-badge">v3.1 Enterprise</span>
     </header>
 
     <div id="chat-container">
-        <div class="message ai-msg">Sistemas atualizados. Função de Visualização de Código e Geração de PDF ativadas.</div>
+        <div class="message ai-msg">KMZ AI Hub Operacional.<br>Erros de PDF e compilação corrigidos. Data do sistema sincronizada para 2026.</div>
+    </div>
+
+    <div class="snippets-bar">
+        <div class="snippet" onclick="fillInput('Crie um site completo com HTML, CSS e JS separados que: ')">🌐 Site Completo</div>
+        <div class="snippet" onclick="fillInput('Crie um código para Arduino em C++ que: ')">🔌 Arduino</div>
+        <div class="snippet" onclick="fillInput('Mostre a tabela verdade e simplifique: ')">🧮 Lógica Digital</div>
+        <div class="snippet" onclick="fillInput('Resuma as últimas notícias sobre: ')">📰 Notícias</div>
     </div>
 
     <div class="input-area">
-        <input type="text" id="user-input" placeholder="Digite um comando, peça um código HTML ou gere uma imagem..." autocomplete="off">
+        <input type="text" id="user-input" placeholder="Comando, código ou cálculo..." autocomplete="off">
         <button id="send-btn">ENVIAR</button>
     </div>
-    <footer>© 2024 KMZ Enterprise | kmzsuportt1@gmail.com</footer>
+    <footer>© 2026 KMZ Enterprise. Todos os direitos reservados. É proibida a cópia ou reprodução. | kmzsuportt1@gmail.com</footer>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
@@ -67,6 +82,11 @@
 
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+
+        function fillInput(text) {
+            userInput.value = text;
+            userInput.focus();
+        }
 
         async function sendMessage() {
             const text = userInput.value.trim();
@@ -105,20 +125,18 @@
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${className}`;
             
-            // Container interno para o PDF não pegar os botões
             const contentDiv = document.createElement('div');
             contentDiv.className = 'msg-content';
 
             if (isMarkdown) {
                 contentDiv.innerHTML = marked.parse(text);
                 msgDiv.appendChild(contentDiv);
-                setupCodeBlocks(msgDiv);
+                setupCodeBlocksAndPreview(msgDiv, contentDiv, className);
                 
-                // Adiciona o Botão de Gerar PDF apenas para a IA
                 if (className === 'ai-msg') {
                     const pdfBtn = document.createElement('button');
                     pdfBtn.className = 'pdf-btn';
-                    pdfBtn.innerHTML = '📥 Baixar PDF';
+                    pdfBtn.innerHTML = '📥 Baixar PDF Oficial';
                     pdfBtn.onclick = () => generatePDF(contentDiv);
                     msgDiv.appendChild(pdfBtn);
                 }
@@ -133,62 +151,105 @@
         }
 
         function generatePDF(elementToPrint) {
+            // Cria um clone para limpar o design e deixar com cara de documento branco impresso
+            const clone = elementToPrint.cloneNode(true);
+            
+            // Remove botões que não devem ir pro PDF
+            clone.querySelectorAll('button').forEach(b => b.remove());
+            clone.querySelectorAll('.master-preview-container').forEach(c => c.remove());
+            
+            // Estiliza o clone para fundo branco e texto preto (Modo Documento)
+            clone.style.backgroundColor = '#ffffff';
+            clone.style.color = '#000000';
+            clone.style.padding = '20px';
+            clone.style.fontFamily = 'Arial, sans-serif';
+            clone.querySelectorAll('pre').forEach(pre => {
+                pre.style.backgroundColor = '#f4f4f4';
+                pre.style.color = '#000';
+                pre.style.border = '1px solid #ccc';
+                pre.style.whiteSpace = 'pre-wrap';
+            });
+
             const opt = {
-                margin:       10,
-                filename:     'KMZ_Documento_' + Date.now() + '.pdf',
+                margin:       15,
+                filename:     'Documento_KMZ_' + Date.now() + '.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(elementToPrint).save();
+            html2pdf().set(opt).from(clone).save();
         }
 
-        function setupCodeBlocks(container) {
-            const preBlocks = container.querySelectorAll('pre');
+        function setupCodeBlocksAndPreview(msgDiv, contentDiv, className) {
+            const preBlocks = contentDiv.querySelectorAll('pre');
+            let htmlCode = '', cssCode = '', jsCode = '';
+            let hasWebCode = false;
+
             preBlocks.forEach(pre => {
                 const codeBlock = pre.querySelector('code');
-                let lang = '';
-                if (codeBlock && codeBlock.className) {
-                    lang = codeBlock.className.replace('language-', '').toLowerCase();
-                }
+                const code = codeBlock ? codeBlock.innerText : pre.innerText;
+                let lang = codeBlock && codeBlock.className ? codeBlock.className.toLowerCase() : '';
 
-                // Botão Copiar
+                // Extrai o código para o Preview Combinado
+                if (lang.includes('html')) { htmlCode = code; hasWebCode = true; }
+                else if (lang.includes('css')) { cssCode = code; hasWebCode = true; }
+                else if (lang.includes('javascript') || lang.includes('js')) { jsCode = code; hasWebCode = true; }
+
+                // Adiciona botão COPIAR em CADA bloco
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'action-btn copy-btn';
                 copyBtn.innerText = 'COPIAR';
                 copyBtn.onclick = () => {
-                    navigator.clipboard.writeText(codeBlock ? codeBlock.innerText : pre.innerText);
+                    navigator.clipboard.writeText(code);
                     copyBtn.innerText = 'COPIADO!';
                     setTimeout(() => copyBtn.innerText = 'COPIAR', 2000);
                 };
                 pre.appendChild(copyBtn);
-
-                // Botão de Preview (Canvas) apenas para HTML
-                if (lang.includes('html')) {
-                    const previewBtn = document.createElement('button');
-                    previewBtn.className = 'action-btn preview-btn';
-                    previewBtn.innerText = '▶ VISUALIZAR';
-                    
-                    const iframe = document.createElement('iframe');
-                    iframe.className = 'preview-frame';
-                    pre.parentElement.insertBefore(iframe, pre.nextSibling);
-
-                    previewBtn.onclick = () => {
-                        if (iframe.style.display === 'block') {
-                            iframe.style.display = 'none';
-                            previewBtn.innerText = '▶ VISUALIZAR';
-                        } else {
-                            iframe.style.display = 'block';
-                            previewBtn.innerText = '▼ FECHAR PREVIEW';
-                            const code = codeBlock ? codeBlock.innerText : pre.innerText;
-                            iframe.contentWindow.document.open();
-                            iframe.contentWindow.document.write(code);
-                            iframe.contentWindow.document.close();
-                        }
-                    };
-                    pre.appendChild(previewBtn);
-                }
             });
+
+            // Se a IA gerou HTML/CSS/JS, cria UM ÚNICO MOTOR DE PREVIEW no final da mensagem
+            if (hasWebCode && className === 'ai-msg') {
+                const previewContainer = document.createElement('div');
+                previewContainer.className = 'master-preview-container';
+                
+                const previewBtn = document.createElement('button');
+                previewBtn.className = 'action-btn master-preview-btn';
+                previewBtn.innerText = '▶ EXECUTAR PROJETO WEB COMPLETO';
+                
+                const iframe = document.createElement('iframe');
+                iframe.className = 'preview-frame';
+                
+                previewBtn.onclick = () => {
+                    if (iframe.style.display === 'block') {
+                        iframe.style.display = 'none';
+                        previewBtn.innerText = '▶ EXECUTAR PROJETO WEB COMPLETO';
+                    } else {
+                        iframe.style.display = 'block';
+                        previewBtn.innerText = '▼ FECHAR PROJETO';
+                        
+                        // Junta HTML, CSS e JS em um único código
+                        const finalCode = `
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <meta charset="UTF-8">
+                                <style>${cssCode}</style>
+                            </head>
+                            <body>
+                                ${htmlCode}
+                                <script>${jsCode}<\/script>
+                            </body>
+                            </html>
+                        `;
+                        iframe.contentWindow.document.open();
+                        iframe.contentWindow.document.write(finalCode);
+                        iframe.contentWindow.document.close();
+                    }
+                };
+                previewContainer.appendChild(previewBtn);
+                previewContainer.appendChild(iframe);
+                contentDiv.appendChild(previewContainer);
+            }
         }
     </script>
 </body>
