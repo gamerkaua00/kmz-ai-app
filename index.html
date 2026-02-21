@@ -23,20 +23,18 @@
         pre { background-color: #000 !important; padding: 15px; border-radius: 8px; overflow-x: auto; position: relative; margin-top: 10px; border: 1px solid #333; }
         code { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
         
-        .action-btn { position: absolute; top: 8px; background-color: #222; color: var(--text-dim); border: 1px solid #444; padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 0.75rem; font-weight: 600; transition: 0.2s; }
+        .action-btn { position: absolute; top: 8px; background-color: #222; color: var(--text-dim); border: 1px solid #444; padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 0.75rem; font-weight: 600; transition: 0.2s; z-index: 10; }
         .action-btn:hover { background-color: var(--primary-color); color: #000; border-color: var(--primary-color); }
         .copy-btn { right: 8px; }
 
         .pdf-btn { position: absolute; bottom: 10px; right: 15px; background-color: #1e1e1e; border: 1px solid #444; color: var(--text-dim); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; transition: 0.2s; }
         .pdf-btn:hover { color: #000; background-color: var(--primary-color); border-color: var(--primary-color); }
 
-        /* Estilos do Preview Combinado */
         .master-preview-container { margin-top: 20px; border-top: 1px dashed #444; padding-top: 15px; }
         .master-preview-btn { position: static; background-color: #1a3a2a; border-color: var(--primary-color); color: var(--primary-color); margin-bottom: 10px; display: block; width: 100%; text-align: center; }
         .master-preview-btn:hover { background-color: var(--primary-color); color: #000; }
         .preview-frame { width: 100%; height: 350px; border: 2px solid var(--primary-color); border-radius: 8px; background-color: #fff; display: none; }
 
-        /* Barra de Snippets (Atalhos) */
         .snippets-bar { display: flex; gap: 10px; padding: 10px 15px; background-color: var(--bg-secondary); overflow-x: auto; white-space: nowrap; border-top: 1px solid #333; }
         .snippet { background-color: #222; color: var(--text-dim); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; border: 1px solid #444; transition: 0.2s; }
         .snippet:hover { background-color: var(--primary-color); color: #000; }
@@ -54,31 +52,31 @@
 <body>
     <header>
         <div class="header-logo">KMZ AI</div>
-        <span class="header-badge">v3.1 Enterprise</span>
+        <span class="header-badge">v4.0 Final - Automations</span>
     </header>
 
     <div id="chat-container">
-        <div class="message ai-msg">KMZ AI Hub Operacional.<br>Erros de PDF e compilação corrigidos. Data do sistema sincronizada para 2026.</div>
+        <div class="message ai-msg">Sistema Operacional. Criado e administrado por Kauã Mazur dos Reis (KMZ Enterprise).<br>Pronto para receber comandos.</div>
     </div>
 
     <div class="snippets-bar">
         <div class="snippet" onclick="fillInput('Crie um site completo com HTML, CSS e JS separados que: ')">🌐 Site Completo</div>
         <div class="snippet" onclick="fillInput('Crie um código para Arduino em C++ que: ')">🔌 Arduino</div>
         <div class="snippet" onclick="fillInput('Mostre a tabela verdade e simplifique: ')">🧮 Lógica Digital</div>
-        <div class="snippet" onclick="fillInput('Resuma as últimas notícias sobre: ')">📰 Notícias</div>
+        <div class="snippet" onclick="fillInput('Pesquise no youtube e na web e coloque em PDF: ')">📰 Pesquisar e Gerar PDF</div>
     </div>
 
     <div class="input-area">
-        <input type="text" id="user-input" placeholder="Comando, código ou cálculo..." autocomplete="off">
+        <input type="text" id="user-input" placeholder="Comando, código, pesquisa web/youtube..." autocomplete="off">
         <button id="send-btn">ENVIAR</button>
     </div>
-    <footer>© 2026 KMZ Enterprise. Todos os direitos reservados. É proibida a cópia ou reprodução. | kmzsuportt1@gmail.com</footer>
+    <footer>© 2026 KMZ Enterprise. Desenvolvido por Kauã Mazur dos Reis. | kmzsuportt1@gmail.com</footer>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
-        const API_URL = 'https://kmz-ai-backend.onrender.com/ask'; // SEU LINK AQUI
+        const API_URL = 'https://kmz-ai-backend.onrender.com/ask'; // MANTENHA O SEU LINK AQUI
 
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
@@ -124,11 +122,18 @@
         function addMessage(text, className, isMarkdown = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${className}`;
-            
             const contentDiv = document.createElement('div');
             contentDiv.className = 'msg-content';
 
+            let autoTriggerPdf = false;
+
             if (isMarkdown) {
+                // VERIFICA O GATILHO AUTOMÁTICO DE PDF
+                if (text.includes('[AUTO_PDF]')) {
+                    autoTriggerPdf = true;
+                    text = text.replace('[AUTO_PDF]', '').trim(); // Remove a tag para não aparecer na tela
+                }
+
                 contentDiv.innerHTML = marked.parse(text);
                 msgDiv.appendChild(contentDiv);
                 setupCodeBlocksAndPreview(msgDiv, contentDiv, className);
@@ -139,6 +144,13 @@
                     pdfBtn.innerHTML = '📥 Baixar PDF Oficial';
                     pdfBtn.onclick = () => generatePDF(contentDiv);
                     msgDiv.appendChild(pdfBtn);
+
+                    // SE A TAG ESTAVA PRESENTE, RODA O PDF AUTOMATICAMENTE
+                    if (autoTriggerPdf) {
+                        setTimeout(() => {
+                            generatePDF(contentDiv);
+                        }, 800); // Aguarda a renderização terminar e baixa
+                    }
                 }
             } else {
                 contentDiv.innerHTML = text;
@@ -151,30 +163,35 @@
         }
 
         function generatePDF(elementToPrint) {
-            // Cria um clone para limpar o design e deixar com cara de documento branco impresso
             const clone = elementToPrint.cloneNode(true);
             
-            // Remove botões que não devem ir pro PDF
             clone.querySelectorAll('button').forEach(b => b.remove());
             clone.querySelectorAll('.master-preview-container').forEach(c => c.remove());
             
-            // Estiliza o clone para fundo branco e texto preto (Modo Documento)
             clone.style.backgroundColor = '#ffffff';
             clone.style.color = '#000000';
             clone.style.padding = '20px';
             clone.style.fontFamily = 'Arial, sans-serif';
+            
+            // Força a cor preta em todos os blocos de código para o PDF
             clone.querySelectorAll('pre').forEach(pre => {
                 pre.style.backgroundColor = '#f4f4f4';
-                pre.style.color = '#000';
                 pre.style.border = '1px solid #ccc';
+                pre.style.padding = '15px';
                 pre.style.whiteSpace = 'pre-wrap';
+                pre.style.overflowX = 'hidden';
+            });
+
+            clone.querySelectorAll('pre, pre *, code, code *').forEach(el => {
+                el.style.color = '#000000';
+                el.style.fontFamily = 'monospace';
             });
 
             const opt = {
                 margin:       15,
-                filename:     'Documento_KMZ_' + Date.now() + '.pdf',
+                filename: 'Documento_KMZ_' + new Date().toLocaleDateString('pt-BR').replace(/\//g, '-') + '.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().set(opt).from(clone).save();
@@ -190,12 +207,10 @@
                 const code = codeBlock ? codeBlock.innerText : pre.innerText;
                 let lang = codeBlock && codeBlock.className ? codeBlock.className.toLowerCase() : '';
 
-                // Extrai o código para o Preview Combinado
                 if (lang.includes('html')) { htmlCode = code; hasWebCode = true; }
                 else if (lang.includes('css')) { cssCode = code; hasWebCode = true; }
                 else if (lang.includes('javascript') || lang.includes('js')) { jsCode = code; hasWebCode = true; }
 
-                // Adiciona botão COPIAR em CADA bloco
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'action-btn copy-btn';
                 copyBtn.innerText = 'COPIAR';
@@ -207,7 +222,6 @@
                 pre.appendChild(copyBtn);
             });
 
-            // Se a IA gerou HTML/CSS/JS, cria UM ÚNICO MOTOR DE PREVIEW no final da mensagem
             if (hasWebCode && className === 'ai-msg') {
                 const previewContainer = document.createElement('div');
                 previewContainer.className = 'master-preview-container';
@@ -226,21 +240,7 @@
                     } else {
                         iframe.style.display = 'block';
                         previewBtn.innerText = '▼ FECHAR PROJETO';
-                        
-                        // Junta HTML, CSS e JS em um único código
-                        const finalCode = `
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <meta charset="UTF-8">
-                                <style>${cssCode}</style>
-                            </head>
-                            <body>
-                                ${htmlCode}
-                                <script>${jsCode}<\/script>
-                            </body>
-                            </html>
-                        `;
+                        const finalCode = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${cssCode}</style></head><body>${htmlCode}<script>${jsCode}<\/script></body></html>`;
                         iframe.contentWindow.document.open();
                         iframe.contentWindow.document.write(finalCode);
                         iframe.contentWindow.document.close();
