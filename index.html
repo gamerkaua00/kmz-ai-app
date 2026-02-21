@@ -5,217 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KMZ Enterprise AI Hub</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #00eb87; /* Verde KMZ */
-            --bg-dark: #0a0a0a;
-            --bg-secondary: #141414;
-            --text-light: #ffffff;
-            --text-dim: #a0a0a0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh; /* Garante tela cheia no mobile */
-            overflow: hidden;
-        }
-
-        /* --- SPLASH SCREEN (TELA DE ABERTURA) --- */
-        #splash-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-dark);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease-out, visibility 0.8s;
-        }
-        .splash-logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-        }
-        .splash-tagline { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 40px; }
+        :root { --primary-color: #00eb87; --bg-dark: #0a0a0a; --bg-secondary: #141414; --text-light: #ffffff; --text-dim: #a0a0a0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Barra de Carregamento Animada */
-        .loading-bar-container {
-            width: 200px; height: 4px; background-color: #333; border-radius: 2px; overflow: hidden;
-        }
-        .loading-bar {
-            height: 100%; width: 0%; background-color: var(--primary-color);
-            animation: loadProgress 2s ease-in-out forwards;
-        }
-        @keyframes loadProgress { 0% { width: 0%; } 100% { width: 100%; } }
-        .splash-hidden { opacity: 0; visibility: hidden; }
+        header { background-color: var(--bg-secondary); padding: 15px 20px; display: flex; align-items: center; border-bottom: 1px solid #333; }
+        .header-logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.2rem; color: var(--primary-color); }
+        .header-badge { background-color: #333; color: var(--text-dim); font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; margin-left: 10px; }
 
-        /* --- INTERFACE PRINCIPAL --- */
-        header {
-            background-color: var(--bg-secondary);
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #333;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        }
-        .header-logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            letter-spacing: 1px;
-        }
-        .header-badge {
-             background-color: #333; color: var(--text-dim);
-             font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; margin-left: 10px;
-        }
-
-        #chat-container {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            scroll-behavior: smooth;
-        }
-        .message {
-            padding: 15px 20px;
-            border-radius: 12px;
-            max-width: 85%;
-            word-wrap: break-word;
-            line-height: 1.6;
-            font-size: 0.95rem;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .user-msg {
-            background-color: var(--primary-color);
-            color: #000;
-            align-self: flex-end;
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(0, 235, 135, 0.2);
-        }
-        .ai-msg {
-            background-color: var(--bg-secondary);
-            border: 1px solid #333;
-            align-self: flex-start;
-        }
+        #chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        .message { padding: 15px 20px; border-radius: 12px; max-width: 85%; word-wrap: break-word; line-height: 1.6; font-size: 0.95rem; position: relative; }
+        .user-msg { background-color: var(--primary-color); color: #000; align-self: flex-end; font-weight: 600; }
+        .ai-msg { background-color: var(--bg-secondary); border: 1px solid #333; align-self: flex-start; padding-bottom: 40px; }
         
-        /* Estilo para Códigos e Matemática */
-        pre {
-            background-color: #000 !important;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            position: relative;
-            margin-top: 10px;
-            border: 1px solid #333;
-            font-family: 'JetBrains Mono', monospace;
-        }
+        pre { background-color: #000 !important; padding: 15px; border-radius: 8px; overflow-x: auto; position: relative; margin-top: 10px; border: 1px solid #333; }
         code { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
-        .copy-btn {
-            position: absolute; top: 8px; right: 8px;
-            background-color: #222; color: var(--text-dim);
-            border: 1px solid #444; padding: 6px 10px;
-            cursor: pointer; border-radius: 4px; font-size: 0.75rem; font-weight: 600;
-            transition: 0.2s;
-        }
-        .copy-btn:hover { background-color: var(--primary-color); color: #000; border-color: var(--primary-color); }
+        
+        .action-btn { position: absolute; top: 8px; background-color: #222; color: var(--text-dim); border: 1px solid #444; padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 0.75rem; font-weight: 600; transition: 0.2s; }
+        .action-btn:hover { background-color: var(--primary-color); color: #000; border-color: var(--primary-color); }
+        .copy-btn { right: 8px; }
+        .preview-btn { right: 100px; color: #00eb87; border-color: #00eb87; }
+        
+        /* Botão de PDF no canto inferior da mensagem da IA */
+        .pdf-btn { position: absolute; bottom: 8px; right: 15px; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+        .pdf-btn:hover { color: var(--primary-color); }
 
-        .input-area {
-            display: flex;
-            padding: 15px;
-            background-color: var(--bg-secondary);
-            border-top: 1px solid #333;
-        }
-        input[type="text"] {
-            flex: 1; padding: 15px; border: 1px solid #333; border-radius: 8px;
-            background-color: var(--bg-dark); color: var(--text-light); font-size: 16px; transition: 0.3s;
-            font-family: 'Inter', sans-serif;
-        }
+        /* Área do Preview Imersivo */
+        .preview-frame { width: 100%; height: 300px; border: 1px solid var(--primary-color); border-radius: 8px; margin-top: 10px; background-color: #fff; display: none; }
+
+        .input-area { display: flex; padding: 15px; background-color: var(--bg-secondary); border-top: 1px solid #333; }
+        input[type="text"] { flex: 1; padding: 15px; border: 1px solid #333; border-radius: 8px; background-color: var(--bg-dark); color: var(--text-light); font-size: 16px; font-family: 'Inter', sans-serif; }
         input[type="text"]:focus { outline: none; border-color: var(--primary-color); }
-        button#send-btn {
-            background-color: var(--primary-color); color: #000; border: none;
-            padding: 0 25px; margin-left: 12px; border-radius: 8px;
-            font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.2s;
-            font-family: 'Inter', sans-serif;
-        }
-        button#send-btn:hover { background-color: #00cc6a; transform: translateY(-2px); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        footer {
-            text-align: center; padding: 12px; font-size: 0.75rem;
-            color: var(--text-dim); background-color: var(--bg-dark);
-            font-family: 'JetBrains Mono', monospace;
-        }
+        button#send-btn { background-color: var(--primary-color); color: #000; border: none; padding: 0 25px; margin-left: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; }
+        footer { text-align: center; padding: 12px; font-size: 0.75rem; color: var(--text-dim); background-color: var(--bg-dark); font-family: 'JetBrains Mono', monospace; }
+        img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
     </style>
 </head>
 <body>
-
-    <div id="splash-screen">
-        <div class="splash-logo">KMZ ENTERPRISE</div>
-        <div class="splash-tagline">Engineering & AI Solutions</div>
-        <div class="loading-bar-container">
-            <div class="loading-bar"></div>
-        </div>
-    </div>
-
     <header>
         <div class="header-logo">KMZ AI</div>
-        <span class="header-badge">v2.0 Enterprise</span>
+        <span class="header-badge">v3.0 Enterprise (Canvas & PDF)</span>
     </header>
 
     <div id="chat-container">
-        <div class="message ai-msg">
-            Sistema KMZ AI online e operacional.<br>
-            Pronto para cálculos de engenharia, desenvolvimento de software e análise de dados.<br><br>
-            *Aguardando comando...*
-        </div>
+        <div class="message ai-msg">Sistemas atualizados. Função de Visualização de Código e Geração de PDF ativadas.</div>
     </div>
 
     <div class="input-area">
-        <input type="text" id="user-input" placeholder="Digite um comando, cálculo ou pesquisa..." autocomplete="off">
+        <input type="text" id="user-input" placeholder="Digite um comando, peça um código HTML ou gere uma imagem..." autocomplete="off">
         <button id="send-btn">ENVIAR</button>
     </div>
-
-    <footer>
-        © 2024 KMZ Enterprise. Todos os direitos reservados. | kmzsuportt1@gmail.com
-    </footer>
+    <footer>© 2024 KMZ Enterprise | kmzsuportt1@gmail.com</footer>
 
     <script>
-        // --- Lógica da Splash Screen ---
-        window.addEventListener('load', () => {
-            // Espera 2.2 segundos (tempo da animação da barra + um pouquinho) e some com a tela
-            setTimeout(() => {
-                document.getElementById('splash-screen').classList.add('splash-hidden');
-            }, 2200);
-        });
-
-        // --- Lógica do Chat ---
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
-
-        // *** SEU LINK DO RENDER AQUI ***
-        const API_URL = 'https://kmz-ai-backend.onrender.com/ask';
+        const API_URL = 'https://kmz-ai-backend.onrender.com/ask'; // SEU LINK AQUI
 
         sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
+        userInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
 
         async function sendMessage() {
             const text = userInput.value.trim();
@@ -225,8 +76,7 @@
             userInput.value = '';
             setLoading(true);
 
-            // Placeholder de carregamento
-            const loadingId = addMessage('<span style="font-family: \'JetBrains Mono\'">Processando requisição...</span>', 'ai-msg');
+            const loadingId = addMessage('Processando...', 'ai-msg');
 
             try {
                 const response = await fetch(API_URL, {
@@ -234,14 +84,12 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text })
                 });
-
                 const data = await response.json();
                 document.getElementById(loadingId).remove();
                 addMessage(data.response, 'ai-msg', true);
-
             } catch (error) {
                 document.getElementById(loadingId).remove();
-                addMessage('⚠️ Falha na conexão com o servidor KMZ. Tente novamente.', 'ai-msg');
+                addMessage('Erro de conexão com o servidor KMZ.', 'ai-msg');
             } finally {
                 setLoading(false);
             }
@@ -256,47 +104,90 @@
         function addMessage(text, className, isMarkdown = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${className}`;
-            const msgId = 'msg-' + Date.now();
-            msgDiv.id = msgId;
+            
+            // Container interno para o PDF não pegar os botões
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'msg-content';
 
             if (isMarkdown) {
-                // Configura o marked para usar highlight.js se quiser no futuro, por enquanto padrão
-                msgDiv.innerHTML = marked.parse(text);
+                contentDiv.innerHTML = marked.parse(text);
+                msgDiv.appendChild(contentDiv);
                 setupCodeBlocks(msgDiv);
+                
+                // Adiciona o Botão de Gerar PDF apenas para a IA
+                if (className === 'ai-msg') {
+                    const pdfBtn = document.createElement('button');
+                    pdfBtn.className = 'pdf-btn';
+                    pdfBtn.innerHTML = '📥 Baixar PDF';
+                    pdfBtn.onclick = () => generatePDF(contentDiv);
+                    msgDiv.appendChild(pdfBtn);
+                }
             } else {
-                msgDiv.innerHTML = text; // Usando innerHTML para permitir tags simples se necessário
+                contentDiv.innerHTML = text;
+                msgDiv.appendChild(contentDiv);
             }
 
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
-            return msgId;
+            return msgDiv.id = 'msg-' + Date.now();
+        }
+
+        function generatePDF(elementToPrint) {
+            const opt = {
+                margin:       10,
+                filename:     'KMZ_Documento_' + Date.now() + '.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(elementToPrint).save();
         }
 
         function setupCodeBlocks(container) {
             const preBlocks = container.querySelectorAll('pre');
             preBlocks.forEach(pre => {
-                // Tenta achar a linguagem para mostrar no botão (opcional)
                 const codeBlock = pre.querySelector('code');
                 let lang = '';
                 if (codeBlock && codeBlock.className) {
-                    lang = codeBlock.className.replace('language-', '').toUpperCase() + ' ';
+                    lang = codeBlock.className.replace('language-', '').toLowerCase();
                 }
 
-                const btn = document.createElement('button');
-                btn.className = 'copy-btn';
-                btn.innerText = 'COPIAR ' + lang;
-                btn.onclick = () => {
-                    const code = codeBlock ? codeBlock.innerText : pre.innerText;
-                    navigator.clipboard.writeText(code);
-                    const originalText = btn.innerText;
-                    btn.innerText = 'COPIADO!';
-                    btn.style.color = '#00eb87';
-                    setTimeout(() => {
-                        btn.innerText = originalText;
-                        btn.style.color = '';
-                    }, 2000);
+                // Botão Copiar
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'action-btn copy-btn';
+                copyBtn.innerText = 'COPIAR';
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(codeBlock ? codeBlock.innerText : pre.innerText);
+                    copyBtn.innerText = 'COPIADO!';
+                    setTimeout(() => copyBtn.innerText = 'COPIAR', 2000);
                 };
-                pre.appendChild(btn);
+                pre.appendChild(copyBtn);
+
+                // Botão de Preview (Canvas) apenas para HTML
+                if (lang.includes('html')) {
+                    const previewBtn = document.createElement('button');
+                    previewBtn.className = 'action-btn preview-btn';
+                    previewBtn.innerText = '▶ VISUALIZAR';
+                    
+                    const iframe = document.createElement('iframe');
+                    iframe.className = 'preview-frame';
+                    pre.parentElement.insertBefore(iframe, pre.nextSibling);
+
+                    previewBtn.onclick = () => {
+                        if (iframe.style.display === 'block') {
+                            iframe.style.display = 'none';
+                            previewBtn.innerText = '▶ VISUALIZAR';
+                        } else {
+                            iframe.style.display = 'block';
+                            previewBtn.innerText = '▼ FECHAR PREVIEW';
+                            const code = codeBlock ? codeBlock.innerText : pre.innerText;
+                            iframe.contentWindow.document.open();
+                            iframe.contentWindow.document.write(code);
+                            iframe.contentWindow.document.close();
+                        }
+                    };
+                    pre.appendChild(previewBtn);
+                }
             });
         }
     </script>
